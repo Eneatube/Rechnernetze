@@ -23,16 +23,17 @@ mapfile -t TailArray < <(zcat ${1} | tail -n+2 | sort -t';' -k${columnZahl},${co
 {
   for line in "${TailArray[@]}"; do
     summe=0
-    IFS=';' read -ra columns <<< "$Head"
+    IFS=';' read -ra columns <<< "$line"
     counter=1
     taskCounter=1
     for wordl in "${columns[@]}"; do
-        if [ counter -ne columnZahl ] && [ counter -ne columnZahl2 ]; then
+        if [ $counter -ne $columnZahl ] && [ $counter -ne $columnZahl2 ]; then
            echo "Task "$taskCounter" --> "$wordl
            summe="$(($summe + $wordl))"
+           ((taskCounter++))
         fi
         ((counter++))
     done
-    echo "Durchschnitt --> " $(($summe/$taskCounter)) 
+    echo "Durchschnitt --> " $(($summe/$taskCounter))
   done
 }
