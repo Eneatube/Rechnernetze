@@ -1,3 +1,7 @@
+if [[ $# -eq 0 ]] ; then
+    echo 'some message'
+    exit 0
+fi
 Head=$(zcat ${1} | head -n 1)
 echo $Head
 zahl=1
