@@ -2,11 +2,13 @@ if [[ $# -eq 0 ]] ; then
     echo 'no Argument given'
     exit 0
 fi
+highestScore=0
 Head=$(zcat ${1} | head -n 1)
 echo $Head
 zahl=1
 columnZahl=0
 columnZahl2=0
+candidates=""
 IFS=';' read -ra columns <<< "$Head"
 for word in "${columns[@]}"; do
         if [ "$word" == "Familyname" ]; then
@@ -30,18 +32,25 @@ mapfile -t TailArray < <(zcat ${1} | tail -n+2 | sort -t';' -k${columnZahl},${co
       if [ "$counter" -ne "$columnZahl" ] && [ "$counter" -ne "$columnZahl2" ]; then
         summe="$(($summe + $word))"
       fi
-      if [ "$counter" -eq "$columnZahl" ]; then
-        curFamilyName=$word
-      fi
-      if [ "$counter" -eq "$columnZahl2" ]; then
-        curFirstName=$word
-      fi
       ((counter++))
     done
-    echo "$curFirstName"";""$curFamilyName"";""$summe"";"
+    if [ "$summe" -gt "$highestScore" ]; then
+      highestScore=$summe
+    fi
   done
-} > ergebnisse.csv 
-
-
-
-#wort;wort;wort;wort
+  for line in "${TailArray[@]}"; do
+    IFS=';' read -ra columns <<< "$line"
+    counter=1
+    summe=0
+    curFamilyName=""
+    curFirstName=""
+    for word in "${columns[@]}"; do
+      if [ "$counter" -ne "$columnZahl" ] && [ "$counter" -ne "$columnZahl2" ]; then
+        summe="$(($summe + $word))"
+      elif [ "$counter" -eq "$columnZahl" ]; then
+        curFamilyName=$word
+      elif [ "$counter" -eq "$columnZahl2" ]; then
+        curFirstName=$word
+      fi
+    
+      ((counter++))
