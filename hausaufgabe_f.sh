@@ -54,3 +54,14 @@ mapfile -t TailArray < <(zcat ${1} | tail -n+2 | sort -t';' -k${columnZahl},${co
       fi
     
       ((counter++))
+    done
+    if [ "$summe" -eq "$highestScore" ]; then
+      if [ -z "${candidates}" ]; then
+         candidates+="$curFirstName $curFamilyName"
+      else
+         candidates+=", $curFirstName $curFamilyName"
+      fi
+    fi
+  done
+  echo "Highest score students with $highestScore points: $candidates"
+}
