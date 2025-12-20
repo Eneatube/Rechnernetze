@@ -1,88 +1,105 @@
-if [ $# -lt 1 ]; then
-    echo "Fehler: Kein Argument angegeben."
-    exit 1
+#!/bin/bash
+#
+# Bash Skript zur Teilaufgabe g der Hausaufgabe:
+# 
+#
+#
+# Prüfen ob überhaupt Argumente übergeben werden?
+
+#--------------------[zu d]--------------------#
+DIR0="${1}"
+DIR1="${2}"
+
+if [[ "${#}" -ne 2 ]]
+then
+ echo "Eingabedatei kann nicht gelesen werden"
+ exit 1
 fi
 
-if [ $# -gt 1 ]; then
-    echo "Fehler: Zu viele Argumente angegeben."
-    exit 1
+# Prüft, ob das Argument 1 eine Datei ist?
+if [[ ! -f "${DIR0}" ]]
+then
+ echo "Eingabedatei kann nicht gelesen werden"
+ exit 1
 fi
 
-FILE="$1"
-
-if [ ! -e "$FILE" ]; then
-    echo "Fehler: Datei existiert nicht."
-    exit 1
+# Prüft, ob die Datei0 existiert (-e) UND lesbar (-r) ist?
+if [[ ! -e "${DIR0}" || ! -r "${DIR0}" ]]
+then
+ echo "Eingabedatei kann nicht gelesen werden"
+ exit 1
 fi
 
-if [ ! -f "$FILE" ]; then
-    echo "Fehler: Argument ist keine Datei."
-    exit 1
+# Prüft, ob DIR1 eine gültige positive Zahl ist?
+if [[ ! "$DIR1" =~ ^[1-9][0-9]*$ ]]
+then
+ echo "Eingabezahl kann nicht gelesen werden"
+ exit 1
 fi
 
-if [ ! -r "$FILE" ]; then
-    echo "Fehler: Datei ist nicht lesbar."
-    exit 1
+# Wir zählen alle Zeilen in der Datei direkt
+ALLLINES=$(zcat "${DIR0}" | wc -l)
+
+# Wir ziehen 1 ab (die Kopfzeile zählt nicht mit)
+MAXDATALINES=$((ALLLINES - 1))
+
+# Wenn die gewünschte Nummer größer ist als die echten Datenzeilen -> Fehler
+if [[ "$DIR1" -gt "$MAXDATALINES" ]]
+then
+ echo "Zeilennummer existiert nicht"
+ exit 1
 fi
-highestScore=0
-Head=$(zcat ${1} | head -n 1)
-echo $Head
-zahl=1
-columnZahl=0
-columnZahl2=0
-candidates=""
-IFS=';' read -ra columns <<< "$Head"
-for word in "${columns[@]}"; do
-        if [ "$word" == "Familyname" ]; then
-                columnZahl=$zahl
-                echo $columnZahl
-        fi
-        if [ "$word" == "Firstname" ]; then
-                columnZahl2=$zahl
-                echo $columnZahl2
-        fi
-        ((zahl++))
+
+#--------------------[zu d]--------------------#
+# wir schneiden die Datei auf in Head: die erste Zeile, und Body: der Rest.
+Head=$(zcat "${DIR0}" | head -n 1)
+Body=$(zcat "${DIR0}" | tail -n +2)
+
+# Nehme die 1. Zeile aus der Eingabedatei
+LINE=$(echo "$Body" | head -n "$DIR1" | tail -n 1)
+NAMES=$(echo "${LINE}" | cut -d ";" -f 1-2 | tr ";" " ")
+
+MAXLINES=$(echo "$Body" | wc -l)
+
+# Überschrift ausgeben
+echo "Result for $NAMES"
+echo "+---------+----------+"
+
+# Grafische Ausgabe der Tasks:
+for ((i=3; i<13; i++))
+do
+ POINTS=$(echo "${LINE}" | cut -d ";" -f "${i}")
+ TOTAL=$(("${TOTAL}" + "${POINTS}"))
+ # "Task i" ausgeben (mit -n, damit wir in der Zeile bleiben)
+ evili=$((i - 2))
+ if [[ "${evili}"  -lt 10 ]]; then
+  # Task 1-9: Zwei Leerzeichen Abstand innen
+  echo -n "| Task ${evili}  |"
+ else
+  # Task 10: Ein Leerzeichen Abstand innen
+  echo -n "| Task ${evili} |"
+ fi
+ # Innere Schleife 1: So viele Rauten drucken wie Punkte da sind
+ for((p=0; p<"${POINTS}"; p++))
+ do
+  echo -n "#"
+ done
+ # Innere Schleife 2: Leerzeichen die noch fehlen
+ for((l=0; l<(10 - "${POINTS}"); l++))
+ do
+  echo -n " "
+ done
+ #Zeilenumbruch und Border
+ echo  "|"
 done
-mapfile -t TailArray < <(zcat ${1} | tail -n+2 | sort -t';' -k${columnZahl},${columnZahl} -k${columnZahl2},${columnZahl2})
-{
-    summe=0
-    IFS=';' read -ra columns <<< "${TailArray[${2}]}"
-    counter=1
-    taskCounter=1
-    curTableLine=""
-    for wordl in "${columns[@]}"; do
-        if [ $counter -ne $columnZahl ] && [ $counter -ne $columnZahl2 ]; then
-            echo "Task "$taskCounter" --> "$wordl
-            summe="$(($summe + $wordl))"
-            hashtags=""
-            for((i=0; i<$wordl;i++)); do
-                if [ $wordl -gt $i ] && [ $wordl -lt 11 ]; then
-                    hashtags+="#"
-                else
-                    exit 1
-                fi
-            done
-            if [ $taskCounter -lt 10 ]; then
-                myArray[$taskCounter]=$hashtags
-            else
-                myArray[$taskCounter]=$hashtags
-            fi
-            ((taskCounter++))
-        elif [ "$counter" -eq "$columnZahl" ]; then
-            curFamilyName=$word
-        elif [ "$counter" -eq "$columnZahl2" ]; then
-            curFirstName=$word
-        fi
-        ((counter++))
-    done
-    echo "Ergebnis für $curFirstName $curLastName: "
-    echo "+-----------+------------+"
-    for(( i=0; i<${#myArray[@]}; i++)); do
-        printf "| %-9s | %-10s |\n" "Task $((i+1))" "${myArray[i-1]}"
-    done
-    echo "+-----------+------------+"
-    printf "| %-9s | %10s |\n" "Total" "$summe"
-    echo "+-----------+------------+"
-}
 
+# Fußzeile und Total ausgabe
+echo "+---------+----------+"
+SPACES_NEEDED=$((9 - ${#TOTAL}))
+echo -n "| Total   |"
+for ((s=0; s<SPACES_NEEDED; s++)); do
+    echo -n " "
+done
 
+echo "$TOTAL |"
+echo "+---------+----------+"
