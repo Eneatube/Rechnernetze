@@ -1,9 +1,28 @@
-if [[ $# -eq 0 ]] ; then
-    echo 'no Argument given'
-    exit 0
+if [ $# -lt 1 ]; then
+    echo "Fehler: Kein Argument angegeben."
+    exit 1
 fi
-if [ ${2} -gt (wc -l ${1}) ] && [ ${2} -lt 0 ]; then
-    exit 0
+
+if [ $# -gt 1 ]; then
+    echo "Fehler: Zu viele Argumente angegeben."
+    exit 1
+fi
+
+FILE="$1"
+
+if [ ! -e "$FILE" ]; then
+    echo "Fehler: Datei existiert nicht."
+    exit 1
+fi
+
+if [ ! -f "$FILE" ]; then
+    echo "Fehler: Argument ist keine Datei."
+    exit 1
+fi
+
+if [ ! -r "$FILE" ]; then
+    echo "Fehler: Datei ist nicht lesbar."
+    exit 1
 fi
 highestScore=0
 Head=$(zcat ${1} | head -n 1)
@@ -30,7 +49,6 @@ mapfile -t TailArray < <(zcat ${1} | tail -n+2 | sort -t';' -k${columnZahl},${co
     IFS=';' read -ra columns <<< "${TailArray[${2}]}"
     counter=1
     taskCounter=1
-    
     curTableLine=""
     for wordl in "${columns[@]}"; do
         if [ $counter -ne $columnZahl ] && [ $counter -ne $columnZahl2 ]; then
@@ -38,16 +56,17 @@ mapfile -t TailArray < <(zcat ${1} | tail -n+2 | sort -t';' -k${columnZahl},${co
             summe="$(($summe + $wordl))"
             hashtags=""
             for((i=0; i<$wordl;i++)); do
-                if [ $wordl -gt $i ]; then
+                if [ $wordl -gt $i ] && [ $wordl -lt 11 ]; then
                     hashtags+="#"
+                else
+                    exit 1
                 fi
             done
-            if [ taskCounter -lt 10 ]; then
-                myArray[$taskCounter]="| Task "$taskCounter"  |"$hashtags"|"
+            if [ $taskCounter -lt 10 ]; then
+                myArray[$taskCounter]=$hashtags
             else
-                myArray[$taskCounter]="| Task "$taskCounter" |"$hashtags"|"
+                myArray[$taskCounter]=$hashtags
             fi
-           
             ((taskCounter++))
         elif [ "$counter" -eq "$columnZahl" ]; then
             curFamilyName=$word
@@ -65,4 +84,5 @@ mapfile -t TailArray < <(zcat ${1} | tail -n+2 | sort -t';' -k${columnZahl},${co
     printf "| %-9s | %10s |\n" "Total" "$summe"
     echo "+-----------+------------+"
 }
+
 

@@ -1,6 +1,24 @@
-if [[ $# -eq 0 ]] ; then
-    echo 'some message'
-    exit 0
+if [ "$#" -ne 1 ]; then
+    echo "Fehler: Bitte genau ein Argument angeben."
+    exit 1
+fi
+
+FILE=$1
+
+if [ ! -e "$FILE" ]; then
+    echo "Fehler: Datei '$FILE' existiert nicht."
+    exit 1
+fi
+
+
+if [ ! -f "$FILE" ]; then
+    echo "Fehler: '$FILE' ist keine reguläre Datei (z.B. ein Verzeichnis)."
+    exit 1
+fi
+
+if [ ! -r "$FILE" ]; then
+    echo "Fehler: Keine Leserechte für '$FILE'."
+    exit 1
 fi
 Head=$(zcat ${1} | head -n 1)
 echo $Head
@@ -23,6 +41,6 @@ mapfile -t TailArray < <(zcat ${1} | tail -n+2 | sort -t';' -k${columnZahl},${co
 {
   echo "$Head"
   for line in "${TailArray[@]}"; do
-    echo "$line"
+    echo "$line"";"
   done
 } > studierende.csv

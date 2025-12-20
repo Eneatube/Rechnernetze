@@ -1,6 +1,23 @@
-if [[ $# -eq 0 ]] ; then
-    echo 'no Argument given'
-    exit 0
+if [ $# -ne 1 ]; then
+    echo "Fehler: Bitte genau ein Argument angeben (Dateipfad)."
+    exit 1
+fi
+
+FILE=$1
+
+if [ ! -e "$FILE" ]; then
+    echo "Fehler: Datei '$FILE' existiert nicht."
+    exit 1
+fi
+
+if [ ! -f "$FILE" ]; then
+    echo "Fehler: '$FILE' ist keine reguläre Datei."
+    exit 1
+fi
+
+if [ ! -r "$FILE" ]; then
+    echo "Fehler: Keine Leserechte für '$FILE'."
+    exit 1
 fi
 highestScore=0
 Head=$(zcat ${1} | head -n 1)

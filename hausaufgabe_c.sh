@@ -1,6 +1,24 @@
-if [[ $# -eq 0 ]] ; then
-    echo 'no Argument given'
-    exit 0
+if [ "$#" -ne 1 ]; then
+    echo "Fehler: Bitte genau ein Argument angeben."
+    exit 1
+fi
+
+FILE=$1
+
+if [ ! -e "$FILE" ]; then
+    echo "Fehler: Datei '$FILE' existiert nicht."
+    exit 1
+fi
+
+
+if [ ! -f "$FILE" ]; then
+    echo "Fehler: '$FILE' ist keine reguläre Datei (z.B. ein Verzeichnis)."
+    exit 1
+fi
+
+if [ ! -r "$FILE" ]; then
+    echo "Fehler: Keine Leserechte für '$FILE'."
+    exit 1
 fi
 Head=$(zcat ${1} | head -n 1)
 echo $Head
@@ -19,9 +37,9 @@ for word in "${columns[@]}"; do
         fi
         ((zahl++))
 done
-mapfile -t TailArray < <(zcat ${1} | tail -n+2 | sort -t';' -k${columnZahl},${columnZahl} -k${columnZahl2},${columnZahl2})
+mapfile -t TailArray < <(zcat ${1} | tail -n+2)
 {
-  echo "First Name;Family Name;Total;"
+  echo "Firstname;Familyname;Total;"
   for line in "${TailArray[@]}"; do
     IFS=';' read -ra columns <<< "$line"
     counter=1
@@ -41,7 +59,3 @@ mapfile -t TailArray < <(zcat ${1} | tail -n+2 | sort -t';' -k${columnZahl},${co
     echo "$curFirstName"";""$curFamilyName"";""$summe"";"
   done
 } > ergebnisse.csv 
-
-
-
-#wort;wort;wort;wort
