@@ -39,7 +39,7 @@ for word in "${columns[@]}"; do
 done
 mapfile -t TailArray < <(zcat ${1} | tail -n+2 | sort -t';' -k${columnZahl},${columnZahl} -k${columnZahl2},${columnZahl2})
 {
-  lineCounter=1
+  lineCounter=0
   summeTask1=0
   summeTask2=0
   summeTask3=0
